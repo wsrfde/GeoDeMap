@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>AMap JSAPI Loader</title>
+    <style>
+        html,
+        body,
+        #container {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="test">测试</div>
+    <div id="container" tabindex="0"></div>
+    <script src="//a.amap.com/Loca/static/mock/districts.js"></script>
+    <script src="https://webapi.amap.com/loader.js"></script>
+    <script>
+        var $ = null;
+        AMapLoader.load({ //首次调用 load
+            key: '09622561b7c5ce7ccfbeec6a1d24694f', //首次load key为必填
+            version: '2.0',
+            AMapUI: {
+                version: '1.1',
+                plugins: [
+                    'overlay/SimpleMarker',
+                    'geo/DistrictExplorer',
+                ]
+            }
+        }).then((AMap) => {
+            map = new AMap.Map('container', {
+                zoom: 4,
+            });
+            // console.log(AMapUI.DistrictExplorer);
+            // console.log(AMapUI.$);
+            AMapUI.load(['lib/$','lib/utils'], function ($,utils) {
+                // console.log($);
+                console.log(utils);
+            })
+            initPage(AMapUI.DistrictExplorer);
+
+        });
+
+        function initPage(DistrictExplorer) {
+            //创建一个实例
+            var districtExplorer = new DistrictExplorer({
+                map: map //关联的地图实例
+            });
+
+            var adcode = 100000; //全国的区划编码
+
+            districtExplorer.loadAreaNode(adcode, function (error, areaNode) {
+
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+
+                //绘制载入的区划节点
+                renderAreaNode(districtExplorer, areaNode);
+            });
+        }
+
+        function renderAreaNode(districtExplorer, areaNode) {
+
+            //清除已有的绘制内容
+            districtExplorer.clearFeaturePolygons();
+
+            //just some colors
+            var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00"];
+
+            //绘制子级区划
+            districtExplorer.renderSubFeatures(areaNode, function (feature, i) {
+
+                var fillColor = colors[i % colors.length];
+                var strokeColor = colors[colors.length - 1 - i % colors.length];
+
+                return {
+                    cursor: 'default',
+                    bubble: true,
+                    strokeColor: strokeColor, //线颜色
+                    strokeOpacity: 1, //线透明度
+                    strokeWeight: 1, //线宽
+                    fillColor: fillColor, //填充色
+                    fillOpacity: 0.35, //填充透明度
+                };
+            });
+            //绘制父级区划，仅用黑色描边
+            districtExplorer.renderParentFeature(areaNode, {
+                cursor: 'default',
+                bubble: true,
+                strokeColor: 'black', //线颜色
+                fillColor: null,
+                strokeWeight: 3, //线宽
+            });
+
+            //更新地图视野以适合区划面
+            map.setFitView(districtExplorer.getAllFeaturePolygons());
+        }
+    </script>
+</body>
+
+</html>
