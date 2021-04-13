@@ -42,7 +42,7 @@
             // console.log(AMapUI.$);
             AMapUI.load(['lib/$','lib/utils'], function ($,utils) {
                 // console.log($);
-                console.log(utils);
+                // console.log(utils);
             })
             initPage(AMapUI.DistrictExplorer);
 
@@ -62,6 +62,7 @@
                     console.error(error);
                     return;
                 }
+                console.log(areaNode);
 
                 //绘制载入的区划节点
                 renderAreaNode(districtExplorer, areaNode);
